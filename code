@@ -1,0 +1,141 @@
+#include <iostream>
+using namespace std;
+
+// Function to print the Sudoku board
+void printBoard(int board[9][9]) {
+    for (int i = 0; i < 9; i++) {
+        // Print a horizontal separator every 3 rows
+        if (i % 3 == 0 && i != 0)
+            cout << "- - - - - - - - - - - -" << endl;
+
+        for (int j = 0; j < 9; j++) {
+            // Print a vertical separator every 3 columns
+            if (j % 3 == 0 && j != 0)
+                cout << " | ";
+
+            // Print the value and move to the next line at the end of each row
+            if (j == 8)
+                cout << board[i][j] << endl;
+            else
+                cout << board[i][j] << " ";
+        }
+    }
+}
+
+// Function to find an empty location in the board
+bool findEmptyLocation(int board[9][9], int &row, int &col) {
+    // Iterate through the board to find an empty cell (denoted by 0)
+    for (row = 0; row < 9; row++) {
+        for (col = 0; col < 9; col++) {
+            if (board[row][col] == 0) {
+                return true;
+            }
+        }
+    }
+    return false; // No empty cell found
+}
+
+// Function to check if placing a number at a given position is valid
+bool isValid(int board[9][9], int num, int row, int col) {
+    // Check the row for duplicates
+    for (int i = 0; i < 9; i++) {
+        if (board[row][i] == num && i != col) {
+            return false;
+        }
+    }
+
+    // Check the column for duplicates
+    for (int i = 0; i < 9; i++) {
+        if (board[i][col] == num && i != row) {
+            return false;
+        }
+    }
+
+    // Check the 3x3 subgrid for duplicates
+    int boxRowStart = row - row % 3;
+    int boxColStart = col - col % 3;
+    for (int i = boxRowStart; i < boxRowStart + 3; i++) {
+        for (int j = boxColStart; j < boxColStart + 3; j++) {
+            if (board[i][j] == num && (i != row || j != col)) {
+                return false;
+            }
+        }
+    }
+
+    return true; // The number placement is valid
+}
+
+// Function to solve the Sudoku using backtracking
+bool solveSudoku(int board[9][9]) {
+    int row, col;
+
+    // If there is no empty location, the Sudoku is solved
+    if (!findEmptyLocation(board, row, col)) {
+        return true;
+    }
+
+    // Try placing numbers from 1 to 9
+    for (int num = 1; num <= 9; num++) {
+        if (isValid(board, num, row, col)) {
+            // Place the number
+            board[row][col] = num;
+
+            // Recursively attempt to solve the rest of the board
+            if (solveSudoku(board)) {
+                return true;
+            }
+
+            // Backtrack if the number placement doesn't lead to a solution
+            board[row][col] = 0;
+        }
+    }
+
+    // Trigger backtracking
+    return false;
+}
+
+// Function to validate the initial board configuration
+bool isValidBoard(int board[9][9]) {
+    // Iterate through the board to check the initial configuration for validity
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (board[i][j] != 0 && !isValid(board, board[i][j], i, j)) {
+                return false;
+            }
+        }
+    }
+    return true; // The initial board configuration is valid
+}
+
+int main() {
+    int board[9][9];
+
+    // Input the Sudoku board from the user
+    cout << "Enter the Sudoku board (use 0 for empty cells):" << endl;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            cin >> board[i][j];
+            // Check if the input is valid
+            if (board[i][j] < 0 || board[i][j] > 9) {
+                cout << "Invalid input! Enter numbers between 0 and 9." << endl;
+                return 1;
+            }
+        }
+    }
+
+    // Validate the initial board configuration
+    if (!isValidBoard(board)) {
+        cout << "Invalid board configuration! There are duplicates in the initial setup." << endl;
+        return 1;
+    }
+
+    // Solve the Sudoku puzzle
+    if (solveSudoku(board)) {
+        cout << "Sudoku solved:" << endl;
+        printBoard(board);
+    } else {
+        cout << "No solution exists." << endl;
+    }
+
+    return 0;
+}
